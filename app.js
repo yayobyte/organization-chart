@@ -6,21 +6,29 @@ const filesystemData = {
     children: [
         {
             name: "/bin",
-            description: "Essential command binaries (ls, cp, cat).",
+            description: "Symlink to /usr/bin. Essential command binaries (ls, cp, cat).",
             type: "system",
-            icon: "file-code"
+            icon: "link"
         },
         {
             name: "/boot",
-            description: "Static files of the boot loader (kernel, initrd).",
+            description: "Static files of the boot loader (kernel, initramfs).",
             type: "system",
-            icon: "power"
+            icon: "power",
+            children: [
+                { name: "grub2/", description: "GRUB bootloader configuration directory.", type: "system", icon: "folder" },
+                { name: "vmlinuz", description: "The compressed Linux kernel executable.", type: "system", icon: "file" }
+            ]
         },
         {
             name: "/dev",
             description: "Device files representing hardware components.",
             type: "device",
-            icon: "cpu"
+            icon: "cpu",
+            children: [
+                { name: "sda", description: "First storage drive (SATA/SCSI/NVMe equivalent).", type: "device", icon: "hard-drive" },
+                { name: "null", description: "Bit bucket (discard device).", type: "device", icon: "trash" }
+            ]
         },
         {
             name: "/etc",
@@ -30,7 +38,26 @@ const filesystemData = {
             children: [
                 { name: "fstab", description: "Storage device mounting information.", type: "config", icon: "database" },
                 { name: "passwd", description: "User account information.", type: "config", icon: "users" },
-                { name: "shadow", description: "Secure user password information.", type: "config", icon: "shield" }
+                { name: "shadow", description: "Secure user password information.", type: "config", icon: "shield" },
+                {
+                    name: "dnf/",
+                    description: "Configuration for Fedora's DNF package manager.",
+                    type: "config",
+                    icon: "folder",
+                    children: [
+                        { name: "dnf.conf", description: "Main DNF configuration file.", type: "config", icon: "file-text" }
+                    ]
+                },
+                {
+                    name: "selinux/",
+                    description: "SELinux configuration directory (Enforcing by default on Fedora).",
+                    type: "config",
+                    icon: "folder",
+                    children: [
+                        { name: "config", description: "Main SELinux policy and state config.", type: "config", icon: "shield" }
+                    ]
+                },
+                { name: "systemd/", description: "System and service manager configuration.", type: "config", icon: "folder" }
             ]
         },
         {
@@ -39,19 +66,52 @@ const filesystemData = {
             type: "user",
             icon: "home",
             children: [
-                { name: "/alice", description: "Home directory for user Alice.", type: "user", icon: "user" },
-                { name: "/bob", description: "Home directory for user Bob.", type: "user", icon: "user" }
+                {
+                    name: "/cristian",
+                    description: "Home directory for the primary user.",
+                    type: "user",
+                    icon: "user",
+                    children: [
+                        { name: ".zshrc", description: "Z-Shell configuration file for the user.", type: "config", icon: "file-code" },
+                        { name: ".bashrc", description: "Bash shell configuration file.", type: "config", icon: "file-code" },
+                        { name: ".gitconfig", description: "Global Git configuration.", type: "config", icon: "git-commit" },
+                        {
+                            name: ".config/",
+                            description: "User-specific configuration files (XDG standard).",
+                            type: "config",
+                            icon: "folder"
+                        },
+                        {
+                            name: "workspace/",
+                            description: "Directory for software development projects.",
+                            type: "user",
+                            icon: "folder"
+                        }
+                    ]
+                }
             ]
         },
         {
             name: "/lib",
-            description: "Essential shared libraries for the binaries in /bin.",
+            description: "Symlink to /usr/lib. Essential shared libraries.",
             type: "system",
-            icon: "book"
+            icon: "link"
+        },
+        {
+            name: "/lib64",
+            description: "Symlink to /usr/lib64. 64-bit shared libraries.",
+            type: "system",
+            icon: "link"
         },
         {
             name: "/media",
-            description: "Mount points for removable media (USB, CD-ROM).",
+            description: "Mount points for removable media (USB, CD-ROM) managed by the OS.",
+            type: "device",
+            icon: "hard-drive"
+        },
+        {
+            name: "/mnt",
+            description: "Temporarily mounted filesystems.",
             type: "device",
             icon: "hard-drive"
         },
@@ -62,16 +122,48 @@ const filesystemData = {
             icon: "package"
         },
         {
+            name: "/proc",
+            description: "Virtual filesystem providing process and kernel information.",
+            type: "system",
+            icon: "activity",
+            children: [
+                { name: "cpuinfo", description: "Real-time information about the CPU.", type: "system", icon: "file-text" },
+                { name: "meminfo", description: "Real-time information about memory usage.", type: "system", icon: "file-text" }
+            ]
+        },
+        {
             name: "/root",
             description: "Home directory for the root user.",
             type: "user",
-            icon: "shield-alert"
+            icon: "shield-alert",
+            children: [
+                { name: ".zshrc", description: "Z-Shell configuration for root.", type: "config", icon: "file-code" },
+                { name: ".bash_history", description: "Command history for the root user.", type: "config", icon: "file-text" }
+            ]
+        },
+        {
+            name: "/run",
+            description: "Runtime variable data. Cleared on reboot.",
+            type: "system",
+            icon: "clock"
         },
         {
             name: "/sbin",
-            description: "System binaries for administrative tasks.",
+            description: "Symlink to /usr/sbin. System binaries for administrative tasks.",
             type: "system",
-            icon: "terminal"
+            icon: "link"
+        },
+        {
+            name: "/srv",
+            description: "Data for services provided by this system.",
+            type: "system",
+            icon: "server"
+        },
+        {
+            name: "/sys",
+            description: "Virtual filesystem for exporting kernel objects and hardware data.",
+            type: "system",
+            icon: "cpu"
         },
         {
             name: "/tmp",
@@ -85,18 +177,46 @@ const filesystemData = {
             type: "system",
             icon: "folder",
             children: [
-                { name: "/bin", description: "Non-essential user binaries.", type: "system", icon: "file-code" },
-                { name: "/local", description: "Software installed locally by administrator.", type: "system", icon: "wrench" }
+                { name: "/bin", description: "Most user commands and binaries.", type: "system", icon: "file-code" },
+                { name: "/lib", description: "Libraries for /usr/bin.", type: "system", icon: "book" },
+                { name: "/share", description: "Architecture-independent data (icons, fonts, man pages).", type: "system", icon: "layers" },
+                {
+                    name: "/local",
+                    description: "Software installed locally by administrator.",
+                    type: "system",
+                    icon: "wrench",
+                    children: [
+                        { name: "/bin", description: "Locally compiled binaries.", type: "system", icon: "file-code" }
+                    ]
+                }
             ]
         },
         {
             name: "/var",
-            description: "Variable data files (logs, databases, mail).",
+            description: "Variable data files (logs, databases, cache).",
             type: "user",
             icon: "activity",
             children: [
-                { name: "/log", description: "System log files storage.", type: "user", icon: "file-text" },
-                { name: "/mail", description: "User mailbox files.", type: "user", icon: "mail" }
+                {
+                    name: "/cache",
+                    description: "Application cache data.",
+                    type: "system",
+                    icon: "folder",
+                    children: [
+                        { name: "dnf/", description: "Cache for the DNF package manager.", type: "system", icon: "package" }
+                    ]
+                },
+                {
+                    name: "/log",
+                    description: "System log files storage.",
+                    type: "system",
+                    icon: "file-text",
+                    children: [
+                        { name: "messages", description: "General system logs.", type: "system", icon: "file-text" },
+                        { name: "secure", description: "Authentication and security logs.", type: "system", icon: "shield" }
+                    ]
+                },
+                { name: "/tmp", description: "Temporary files preserved between reboots.", type: "system", icon: "clock" }
             ]
         }
     ]
@@ -124,13 +244,19 @@ const icons = {
     "file-code": `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>`,
     "hard-drive": `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="12" x2="2" y2="12"></line><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path><line x1="6" y1="16" x2="6.01" y2="16"></line><line x1="10" y1="16" x2="10.01" y2="16"></line></svg>`,
     mail: `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>`,
+    link: `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>`,
+    file: `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>`,
+    trash: `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`,
+    "git-commit": `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><line x1="1.05" y1="12" x2="8" y2="12"></line><line x1="16.01" y1="12" x2="22.96" y2="12"></line></svg>`,
+    server: `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>`,
+    layers: `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>`
 };
 
 // D3 Configuration
 const margin = { top: 40, right: 120, bottom: 40, left: 120 };
 const cardWidth = 240;
 const cardHeight = 120;
-const shadowPadding = 40; // Extra space for shadows and hover scales
+const shadowPadding = 40;
 const nodeSpacingX = 300;
 const nodeSpacingY = 200;
 
@@ -164,7 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         svg.transition().duration(750).call(
             zoom.transform,
-            d3.zoomIdentity.translate(viewportWidth / 2, 120).scale(0.9) // More top margin for shadows
+            d3.zoomIdentity.translate(viewportWidth / 2, 120).scale(0.9)
         );
     }
 
@@ -212,7 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .attr("x", -(cardWidth / 2 + shadowPadding))
             .attr("y", -(cardHeight / 2 + shadowPadding))
             .append("xhtml:div")
-            .style("padding", `${shadowPadding}px`) // Provide space for the shadow
+            .style("padding", `${shadowPadding}px`)
             .style("box-sizing", "border-box")
             .append("xhtml:div")
             .attr("class", "node-card")

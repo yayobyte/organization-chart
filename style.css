@@ -284,8 +284,8 @@ h1 {
 /* Legend and Footer */
 footer {
     border-top: 1px solid var(--border-color);
-    padding-top: 2rem;
-    margin-top: 4rem;
+    padding-top: 1rem;
+    margin-top: 2rem;
     text-align: center;
     color: var(--text-secondary);
     font-size: 0.9rem;
@@ -300,6 +300,14 @@ footer {
 
 a {
     color: var(--accent);
+}
+
+.names {
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
+    gap: 2rem;
+    padding: 1rem;
 }
 
 .legend-item {
