@@ -3,7 +3,6 @@ const filesystemData = {
     description: "The root directory of the entire filesystem hierarchy.",
     type: "system",
     icon: "root",
-    expanded: true,
     children: [
         {
             name: "/bin",
@@ -127,139 +126,169 @@ const icons = {
     mail: `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>`,
 };
 
-function createNode(data) {
-    const group = document.createElement('div');
-    group.className = 'node-group';
-    if (!data.children || data.children.length === 0) {
-        group.classList.add('leaf');
-    }
-
-    const card = document.createElement('div');
-    card.className = `node-card ${data.expanded ? '' : 'collapsed'}`;
-    
-    const typeIndicator = document.createElement('div');
-    typeIndicator.className = `node-type-indicator type-${data.type}`;
-    card.appendChild(typeIndicator);
-
-    const header = document.createElement('div');
-    header.className = 'node-header';
-
-    const iconDiv = document.createElement('div');
-    iconDiv.className = 'node-icon';
-    iconDiv.innerHTML = icons[data.icon] || icons.folder;
-    header.appendChild(iconDiv);
-
-    const name = document.createElement('span');
-    name.className = 'node-name';
-    name.textContent = data.name;
-    header.appendChild(name);
-
-    if (data.children && data.children.length > 0) {
-        const arrow = document.createElement('div');
-        arrow.className = 'node-arrow';
-        arrow.style.marginLeft = 'auto';
-        arrow.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" style="transition: transform 0.3s; transform: ${data.expanded ? 'rotate(180deg)' : 'rotate(0deg)'}"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
-        header.appendChild(arrow);
-    }
-
-    card.appendChild(header);
-
-    const desc = document.createElement('p');
-    desc.className = 'node-desc';
-    desc.textContent = data.description;
-    card.appendChild(desc);
-
-    group.appendChild(card);
-
-    if (data.children && data.children.length > 0) {
-        const vLineDown = document.createElement('div');
-        vLineDown.className = 'line-vertical-down';
-        if (!data.expanded) vLineDown.style.opacity = '0';
-        group.appendChild(vLineDown);
-
-        const childrenContainer = document.createElement('div');
-        childrenContainer.className = `children-container ${data.expanded ? '' : 'hidden'}`;
-        
-        // Horizontal bridge line
-        const bridge = document.createElement('div');
-        bridge.className = 'line-horizontal-bridge';
-        childrenContainer.appendChild(bridge);
-
-        data.children.forEach((child, index) => {
-            const childNode = createNode(child);
-            childrenContainer.appendChild(childNode);
-        });
-
-        group.appendChild(childrenContainer);
-
-        // Update bridge position and width after appending children
-        setTimeout(() => {
-            if (data.children.length > 1) {
-                const childNodes = childrenContainer.querySelectorAll(':scope > .node-group');
-                const first = childNodes[0].offsetLeft + childNodes[0].offsetWidth / 2;
-                const last = childNodes[childNodes.length - 1].offsetLeft + childNodes[childNodes.length - 1].offsetWidth / 2;
-                bridge.style.left = `${first}px`;
-                bridge.style.width = `${last - first}px`;
-            } else {
-                bridge.style.display = 'none';
-            }
-        }, 0);
-
-        card.addEventListener('click', (e) => {
-            e.stopPropagation();
-            data.expanded = !data.expanded;
-            
-            card.classList.toggle('collapsed', !data.expanded);
-            childrenContainer.classList.toggle('hidden', !data.expanded);
-            vLineDown.style.opacity = data.expanded ? '1' : '0';
-            
-            const arrowSvg = card.querySelector('.node-arrow svg');
-            if (arrowSvg) {
-                arrowSvg.style.transform = data.expanded ? 'rotate(180deg)' : 'rotate(0deg)';
-            }
-
-            // Recalibrate bridges during and after animation
-            let startTime = performance.now();
-            function animate() {
-                recalibrateBridges();
-                if (performance.now() - startTime < 600) {
-                    requestAnimationFrame(animate);
-                }
-            }
-            requestAnimationFrame(animate);
-        });
-    }
-
-    return group;
-}
-
-function recalibrateBridges() {
-    const bridges = document.querySelectorAll('.line-horizontal-bridge');
-    bridges.forEach(bridge => {
-        const container = bridge.parentElement;
-        if (container.classList.contains('hidden')) return;
-
-        const childNodes = container.querySelectorAll(':scope > .node-group');
-        if (childNodes.length > 1) {
-            const first = childNodes[0].offsetLeft + childNodes[0].offsetWidth / 2;
-            const last = childNodes[childNodes.length - 1].offsetLeft + childNodes[childNodes.length - 1].offsetWidth / 2;
-            bridge.style.left = `${first}px`;
-            bridge.style.width = `${last - first}px`;
-            bridge.style.display = 'block';
-        } else {
-            bridge.style.display = 'none';
-        }
-    });
-}
+// D3 Configuration
+const margin = { top: 40, right: 120, bottom: 40, left: 120 };
+const cardWidth = 240;
+const cardHeight = 120;
+const shadowPadding = 40; // Extra space for shadows and hover scales
+const nodeSpacingX = 300;
+const nodeSpacingY = 200;
 
 document.addEventListener('DOMContentLoaded', () => {
-    const container = document.getElementById('tree-container');
-    const rootNode = createNode(filesystemData);
-    container.appendChild(rootNode);
+    const svg = d3.select("#tree-svg");
+    const container = svg.append("g").attr("class", "zoom-container");
+    const gLinks = container.append("g").attr("class", "links");
+    const gNodes = container.append("g").attr("class", "nodes");
 
-    // Initial positioning recalibration
-    setTimeout(recalibrateBridges, 100);
+    // Zoom behavior
+    const zoom = d3.zoom()
+        .scaleExtent([0.1, 3])
+        .on("zoom", (event) => {
+            container.attr("transform", event.transform);
+        });
 
-    // Initial positioning recalibration for bridges on window resize
-    window.addEventListener('resize', recalibrateBridges);
+    svg.call(zoom);
+
+    let root = d3.hierarchy(filesystemData);
+    root.x0 = 0;
+    root.y0 = 0;
+
+    // Reset zoom and center root
+    function resetView() {
+        const viewport = document.querySelector('.tree-viewport');
+        const viewportWidth = viewport.clientWidth;
+        const viewportHeight = viewport.clientHeight || 800;
+
+        svg.attr("width", viewportWidth);
+        svg.attr("height", viewportHeight);
+
+        svg.transition().duration(750).call(
+            zoom.transform,
+            d3.zoomIdentity.translate(viewportWidth / 2, 80).scale(0.9) // Slightly larger starting scale
+        );
+    }
+
+    // Collapse all except root
+    if (root.children) {
+        root.children.forEach(collapse);
+    }
+
+    const treeLayout = d3.tree().nodeSize([nodeSpacingX, nodeSpacingY]);
+
+    function collapse(d) {
+        if (d.children) {
+            d._children = d.children;
+            d._children.forEach(collapse);
+            d.children = null;
+        }
+    }
+
+    function update(source) {
+        const treeData = treeLayout(root);
+        const nodes = treeData.descendants();
+        const links = treeData.links();
+
+        // Nodes
+        const node = gNodes.selectAll("g.node")
+            .data(nodes, d => d.data.name + (d.parent ? d.parent.data.name : "root"));
+
+        const nodeEnter = node.enter().append("g")
+            .attr("class", "node")
+            .attr("transform", d => `translate(${source.x0},${source.y0})`)
+            .on("click", (event, d) => {
+                if (d.children) {
+                    d._children = d.children;
+                    d.children = null;
+                } else {
+                    d.children = d._children;
+                    d._children = null;
+                }
+                update(d);
+            });
+
+        nodeEnter.append("foreignObject")
+            .attr("width", cardWidth + shadowPadding * 2)
+            .attr("height", cardHeight + shadowPadding * 2)
+            .attr("x", -(cardWidth / 2 + shadowPadding))
+            .attr("y", -(cardHeight / 2 + shadowPadding))
+            .append("xhtml:div")
+            .style("padding", `${shadowPadding}px`) // Provide space for the shadow
+            .style("box-sizing", "border-box")
+            .append("xhtml:div")
+            .attr("class", "node-card")
+            .html(d => `
+                <div class="node-type-indicator type-${d.data.type}"></div>
+                <div class="node-header">
+                    <div class="node-icon">${icons[d.data.icon] || icons.folder}</div>
+                    <span class="node-name">${d.data.name}</span>
+                    ${(d.children || d._children) ? `
+                        <div class="node-arrow" style="margin-left: auto;">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" style="transition: transform 0.3s; transform: ${d.children ? 'rotate(180deg)' : 'rotate(0deg)'}">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                    ` : ""}
+                </div>
+                <p class="node-desc">${d.data.description}</p>
+            `);
+
+        const nodeUpdate = nodeEnter.merge(node);
+
+        nodeUpdate.transition()
+            .duration(500)
+            .attr("transform", d => `translate(${d.x},${d.y})`);
+
+        // Update arrow rotation
+        nodeUpdate.select(".node-arrow svg")
+            .style("transform", d => d.children ? 'rotate(180deg)' : 'rotate(0deg)');
+
+        const nodeExit = node.exit().transition()
+            .duration(500)
+            .attr("transform", d => `translate(${source.x},${source.y})`)
+            .remove();
+
+        // Links
+        const link = gLinks.selectAll("path.link")
+            .data(links, d => d.target.data.name + (d.target.parent ? d.target.parent.data.name : "root"));
+
+        const linkEnter = link.enter().insert("path", "g")
+            .attr("class", "link")
+            .attr("d", d => {
+                const o = { x: source.x0, y: source.y0 };
+                return diagonal(o, o);
+            });
+
+        const linkUpdate = linkEnter.merge(link);
+
+        linkUpdate.transition()
+            .duration(500)
+            .attr("d", d => diagonal(d.source, d.target));
+
+        const linkExit = link.exit().transition()
+            .duration(500)
+            .attr("d", d => {
+                const o = { x: source.x, y: source.y };
+                return diagonal(o, o);
+            })
+            .remove();
+
+        nodes.forEach(d => {
+            d.x0 = d.x;
+            d.y0 = d.y;
+        });
+    }
+
+    function diagonal(s, t) {
+        const midY = (s.y + t.y) / 2;
+        return `M ${s.x} ${s.y}
+                V ${midY}
+                H ${t.x}
+                V ${t.y}`;
+    }
+
+    document.getElementById('reset-button').addEventListener('click', resetView);
+    window.addEventListener('resize', resetView);
+
+    resetView();
+    update(root);
 });
