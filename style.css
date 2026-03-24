@@ -6,16 +6,16 @@
     --text-secondary: #8b949e;
     --accent: #58a6ff;
     --accent-glow: rgba(88, 166, 255, 0.3);
-    
+
     /* Category Colors */
     --clr-system: #ff7b72;
     --clr-config: #d2a8ff;
     --clr-user: #7ee787;
     --clr-device: #ffa657;
-    
+
     --font-main: 'Outfit', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
-    
+
     --node-width: 220px;
     --node-spacing: 40px;
     --line-color: rgba(48, 54, 61, 1);
@@ -72,18 +72,21 @@ h1 {
 .tree-viewport {
     flex: 1;
     width: 100%;
-    max-width: 1600px; /* Increased for better desktop experience */
+    max-width: 1600px;
+    /* Increased for better desktop experience */
     margin: 0 auto;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 1rem;
+    padding: 6rem 2rem 2rem 2rem;
+    /* Increased top/bottom padding significantly */
     border-radius: 20px;
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid var(--border-color);
     position: relative;
-    min-height: 700px; /* Ensure a good vertical space for landscape feel */
+    min-height: 700px;
+    /* Ensure a good vertical space for landscape feel */
 }
 
 .action-button {
@@ -141,7 +144,8 @@ h1 {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    width: var(--node-width); /* Controlled by D3 but set here for style */
+    width: var(--node-width);
+    /* Controlled by D3 but set here for style */
     padding: 1rem;
     backdrop-filter: blur(10px);
     display: flex;
@@ -193,10 +197,21 @@ h1 {
     border-radius: 0 0 4px 4px;
 }
 
-.type-system { background-color: var(--clr-system); }
-.type-config { background-color: var(--clr-config); }
-.type-user { background-color: var(--clr-user); }
-.type-device { background-color: var(--clr-device); }
+.type-system {
+    background-color: var(--clr-system);
+}
+
+.type-config {
+    background-color: var(--clr-config);
+}
+
+.type-user {
+    background-color: var(--clr-user);
+}
+
+.type-device {
+    background-color: var(--clr-device);
+}
 
 .children-container {
     display: flex;
@@ -245,8 +260,9 @@ h1 {
     z-index: 1;
 }
 
-.tree-root > .node-group::before {
-    display: none; /* No line above root */
+.tree-root>.node-group::before {
+    display: none;
+    /* No line above root */
 }
 
 .node-arrow {
@@ -283,10 +299,21 @@ footer {
     border-radius: 50%;
 }
 
-.v-dot.system { background-color: var(--clr-system); }
-.v-dot.config { background-color: var(--clr-config); }
-.v-dot.user { background-color: var(--clr-user); }
-.v-dot.device { background-color: var(--clr-device); }
+.v-dot.system {
+    background-color: var(--clr-system);
+}
+
+.v-dot.config {
+    background-color: var(--clr-config);
+}
+
+.v-dot.user {
+    background-color: var(--clr-user);
+}
+
+.v-dot.device {
+    background-color: var(--clr-device);
+}
 
 /* Animations */
 @keyframes fadeInDown {
@@ -294,6 +321,7 @@ footer {
         opacity: 0;
         transform: translateY(-20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);

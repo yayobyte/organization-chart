@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         svg.transition().duration(750).call(
             zoom.transform,
-            d3.zoomIdentity.translate(viewportWidth / 2, 80).scale(0.9) // Slightly larger starting scale
+            d3.zoomIdentity.translate(viewportWidth / 2, 120).scale(0.9) // More top margin for shadows
         );
     }
 
