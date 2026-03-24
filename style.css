@@ -157,11 +157,10 @@ h1 {
 .type-user { background-color: var(--clr-user); }
 .type-device { background-color: var(--clr-device); }
 
-/* Children Container */
 .children-container {
     display: flex;
     gap: var(--node-spacing);
-    margin-top: calc(var(--node-spacing) * 1.5);
+    padding-top: calc(var(--node-spacing) * 1.5);
     position: relative;
     transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     transform-origin: top center;
@@ -171,30 +170,18 @@ h1 {
     opacity: 0;
     transform: translateY(-20px) scaleY(0);
     height: 0;
-    margin-top: 0;
+    padding-top: 0;
     pointer-events: none;
     overflow: hidden;
 }
 
 /* Connecting Lines */
-/* Vertical line from parent to the horizontal bridge */
-.node-group:not(.leaf)::after {
-    content: '';
-    position: absolute;
-    top: var(--node-height, 80px); /* Will be adjusted or relative */
-    left: 50%;
+.line-vertical-down {
     width: 2px;
     height: calc(var(--node-spacing) * 1.5);
     background: var(--line-color);
-    z-index: 1;
-}
-
-/* For better positioning, let's use a wrapper for lines */
-.line-vertical-down {
-    width: 2px;
-    height: calc(var(--node-spacing) * 1.2);
-    background: var(--line-color);
     margin: 0 auto;
+    transition: opacity 0.3s ease;
 }
 
 .line-horizontal-bridge {
@@ -202,6 +189,28 @@ h1 {
     top: 0;
     height: 2px;
     background: var(--line-color);
+    z-index: 1;
+}
+
+/* Vertical line from bridge to child node */
+.node-group::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 2px;
+    height: calc(var(--node-spacing) * 1.5);
+    background: var(--line-color);
+    z-index: 1;
+}
+
+.tree-root > .node-group::before {
+    display: none; /* No line above root */
+}
+
+.node-arrow {
+    transition: transform 0.3s;
+    color: var(--text-secondary);
 }
 
 /* Legend and Footer */
